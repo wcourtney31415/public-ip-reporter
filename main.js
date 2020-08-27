@@ -1,23 +1,21 @@
+'use strict';
 const nodemailer = require('nodemailer');
-const publicIp = require('public-ip');
+const getIP = require('external-ip')();
 
-async function go() {
-  const ipv4 = await getIpv4();
-  const ipv6 = await getIpv6();
-  const message = generateMessage(ipv4, ipv6);
+function constructEmail(ipv4) {
+  const message = generateMessage(ipv4);
   const mailOptions = optionsWith(message);
   sendEmail(mailOptions);
 }
 
-async function getIpv4() {
-  const ipv4 = await publicIp.v4();
-  return ipv4;
-}
-
-async function getIpv6() {
-  const ipv6 = await publicIp.v6();
-  return ipv6;
-}
+getIP((err, ip) => {
+  if (err) {
+    var ipv4 = "Failed to retrieve IpV4.";
+    throw err;
+  }
+  ipv4 = ip;
+  constructEmail(ipv4);
+});
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -60,13 +58,10 @@ function now() {
   return (wholeDate + " " + wholeTime);
 }
 
-function generateMessage(ipv4, ipv6) {
+function generateMessage(ipv4) {
   const v4Text = `IPv4:\n${ipv4}`;
-  const v6Text = `IPv6:\n${ipv6}`;
   const timeText = `As of:\n${now()}`;
   const vSpace = '\n\n'
-  const message = v4Text + vSpace + v6Text + vSpace + timeText;
+  const message = v4Text + vSpace + timeText;
   return message;
 }
-
-go();
