@@ -1,13 +1,23 @@
 const nodemailer = require('nodemailer');
 const publicIp = require('public-ip');
 
-(async () => {
-  const ipv4 = await publicIp.v4();
-  const ipv6 = await publicIp.v6();
+async function go() {
+  const ipv4 = await getIpv4();
+  const ipv6 = await getIpv6();
   const message = generateMessage(ipv4, ipv6);
   const mailOptions = optionsWith(message);
   sendEmail(mailOptions);
-})();
+}
+
+async function getIpv4() {
+  const ipv4 = await publicIp.v4();
+  return ipv4;
+}
+
+async function getIpv6() {
+  const ipv6 = await publicIp.v6();
+  return ipv6;
+}
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -58,3 +68,5 @@ function generateMessage(ipv4, ipv6) {
   const message = v4Text + vSpace + v6Text + vSpace + timeText;
   return message;
 }
+
+go();
